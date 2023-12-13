@@ -15,7 +15,7 @@ Widget TxtField(BuildContext context,
           // initialValue: init,
           controller: controller,
           style: const TextStyle(color: Colors.white),
-          textCapitalization: TextCapitalization.characters,
+          // textCapitalization: TextCapitalization.characters,
           keyboardType:
               (keyboardType != null) ? keyboardType : TextInputType.text,
           decoration: InputDecoration(

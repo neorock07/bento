@@ -17,6 +17,7 @@ class _HomeState extends State<Home> {
 
   final _formKey = GlobalKey<FormState>();
   var usernameController = TextEditingController();
+  var brokerController = TextEditingController();
   var passwdController = TextEditingController();
   var payloadController = TextEditingController();
 
@@ -71,32 +72,52 @@ class _HomeState extends State<Home> {
                         //             .length >=
                         //         4)
                         //     ?
-                        CardIndikator(context,
+                        Obx(() => CardIndikator(context,
                             width: 150.w,
                             height: 50.h,
                             icon: Icons.thermostat,
                             iconColor: Colors.orange,
                             label: "Suhu",
-                            value: "20"),
+                            value: "${mqttController.suhu.value}")),
                         // : const CircularProgressIndicator()),
                         // Obx(() => (mqttController.payloadMsg.value
                         //             .split(",")
                         //             .length >=
                         //         4)
                         //     ?
-                        CardIndikator(context,
+                        Obx(() => CardIndikator(context,
                             width: 150.w,
                             height: 50.h,
                             icon: Icons.waves,
-                            value: "20",
+                            value: "${mqttController.humidity.value}",
                             label: "Humidity",
-                            iconColor: Colors.deepOrange)
+                            iconColor: Colors.deepOrange)),
                         // : const CircularProgressIndicator()),
                       ],
                     ),
                     SizedBox(
-                      height: 20.h,
+                      height: 6.h,
                     ),
+                    Obx(() => Padding(
+                          padding: EdgeInsets.only(left: 10.w),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.flag_circle,
+                                color: Colors.red,
+                              ),
+                              SizedBox(width: 5.w),
+                              Text(
+                                  (mqttController.isConnect.value == true)
+                                      ? "Connected"
+                                      : "Disconnected",
+                                  style: const TextStyle(color: Colors.white))
+                            ],
+                          ),
+                        )),
+                    SizedBox(
+                      height: 10.h,
+                    )
                   ],
                 ),
               ),
@@ -107,6 +128,11 @@ class _HomeState extends State<Home> {
                 padding: EdgeInsets.only(left: 10.w, right: 10.w),
                 child: Column(
                   children: [
+                    TxtField(context,
+                        key: _formKey,
+                        label: "Broker Address",
+                        keyboardType: TextInputType.emailAddress,
+                        controller: brokerController),
                     TxtField(context,
                         key: _formKey,
                         label: "Username",
@@ -128,8 +154,13 @@ class _HomeState extends State<Home> {
                               keyboardType: TextInputType.name,
                               controller: payloadController),
                         ),
-                        ElevatedButton(onPressed: () {}, child: Text("Push")),
-                        ElevatedButton(onPressed: () {}, child: Text("Stop")),
+                        ElevatedButton(onPressed: () {
+                           mqttController.publish("/UAS-IOT/43321206/STATUS", "1"); 
+                        }, child: Text("Push")),
+                        ElevatedButton(onPressed: () {
+                           mqttController.publish("/UAS-IOT/43321206/STATUS", "0"); 
+
+                        }, child: Text("Stop")),
                       ],
                     ),
                     SizedBox(
@@ -141,12 +172,21 @@ class _HomeState extends State<Home> {
                         SizedBox(
                           width: MediaQuery.of(context).size.width * 0.45,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              mqttController.serverName = brokerController.text;
+                              mqttController.inisiasi();
+                              (usernameController.text != null)
+                                  ? 
+                                  mqttController.connect(
+                                      username: usernameController.text,
+                                      password: passwdController.text)
+                                  : "";
+                            },
                             style: ElevatedButton.styleFrom(
                               primary: Colors.purple,
                             ),
                             child: const Text(
-                              "Push",
+                              "Connect",
                               style: TextStyle(color: Colors.white),
                             ),
                           ),
@@ -154,12 +194,14 @@ class _HomeState extends State<Home> {
                         SizedBox(
                           width: MediaQuery.of(context).size.width * 0.45,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              mqttController.disconnect();
+                            },
                             style: ElevatedButton.styleFrom(
                               primary: Colors.grey,
                             ),
                             child: const Text(
-                              "Stop",
+                              "Disconnect",
                               style: TextStyle(color: Colors.white),
                             ),
                           ),
